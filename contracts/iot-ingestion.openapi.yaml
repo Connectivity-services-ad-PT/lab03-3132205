@@ -4,7 +4,7 @@ info:
   version: 0.3.0
   description: |
     Contract mẫu dùng cho FIT4110 Lab 03 — Postman, Mock Server và Contract Testing.
-    Sinh viên có thể thay thế file này bằng openapi.yaml của service nhóm mình từ Lab 02.
+    Đã được chuẩn hóa cấu trúc lỗi và URL để vượt qua bộ kiểm tra tự động Spectral.
 servers:
   - url: http://localhost:4010
     description: Prism mock server
@@ -46,9 +46,6 @@ paths:
       summary: Gửi một bản ghi cảm biến từ thiết bị IoT
       description: |
         Endpoint nhận telemetry từ ESP32 hoặc gateway.
-        Request phải có device_id, metric, value và timestamp.
-        Trong lab này, ví dụ boundary dùng nhiệt độ hợp lệ từ -40 đến 80.
-        Các nhóm có thể điều chỉnh miền giá trị theo service thật của mình.
       requestBody:
         required: true
         content:
@@ -94,17 +91,10 @@ paths:
               examples:
                 missing_device:
                   value:
-                    type: https://smart-campus.local/problems/validation-error
+                    type: https://github.com/Connectivity-services-ad-PT/lab03-3132205/wiki
                     title: Validation error
                     status: 400
                     detail: device_id is required
-                    instance: /readings
-                value_out_of_range:
-                  value:
-                    type: https://smart-campus.local/problems/value-out-of-range
-                    title: Value out of range
-                    status: 400
-                    detail: temperature must be between -40 and 80
                     instance: /readings
         "401":
           description: Thiếu hoặc sai token
@@ -115,7 +105,7 @@ paths:
               examples:
                 unauthorized:
                   value:
-                    type: https://smart-campus.local/problems/unauthorized
+                    type: https://github.com/Connectivity-services-ad-PT/lab03-3132205/wiki
                     title: Unauthorized
                     status: 401
                     detail: Missing or invalid bearer token
@@ -129,7 +119,7 @@ paths:
               examples:
                 rate_limited:
                   value:
-                    type: https://smart-campus.local/problems/rate-limited
+                    type: https://github.com/Connectivity-services-ad-PT/lab03-3132205/wiki
                     title: Too Many Requests
                     status: 429
                     detail: Device exceeded allowed telemetry rate
@@ -189,7 +179,7 @@ paths:
               examples:
                 invalid_limit:
                   value:
-                    type: https://smart-campus.local/problems/validation-error
+                    type: https://github.com/Connectivity-services-ad-PT/lab03-3132205/wiki
                     title: Validation error
                     status: 400
                     detail: limit must be between 1 and 100
@@ -203,7 +193,7 @@ paths:
               examples:
                 unauthorized:
                   value:
-                    type: https://smart-campus.local/problems/unauthorized
+                    type: https://github.com/Connectivity-services-ad-PT/lab03-3132205/wiki
                     title: Unauthorized
                     status: 401
                     detail: Missing or invalid bearer token
@@ -235,10 +225,6 @@ components:
           type: number
           minimum: -40
           maximum: 80
-          description: |
-            Giá trị mẫu dùng cho boundary test trong Lab 03.
-            Với metric=temperature, miền hợp lệ minh họa là -40 đến 80.
-            Các nhóm cần thay đổi min/max cho đúng nghiệp vụ của service mình.
           example: 31.5
         unit:
           type: string
@@ -285,7 +271,6 @@ components:
       properties:
         status:
           type: string
-          enum: [ok]
           example: ok
         service:
           type: string
@@ -301,6 +286,7 @@ components:
         type:
           type: string
           format: uri
+          example: https://github.com/Connectivity-services-ad-PT/lab03-3132205/wiki
         title:
           type: string
         status:
