@@ -1,0 +1,200 @@
+openapi: 3.1.0
+info:
+  title: Smart Campus — Core Platform Contract
+  description: |
+    Hợp đồng API chuẩn hóa Lab 03 phục vụ chạy kiểm thử Newman Contract Tests tự động.
+    Đáp ứng các tiêu chí nâng cao: Phân trang con trỏ (Cursor Pagination), 
+    Quản lý vòng đời (Sunset/Deprecation Policy), và Mô hình Webhook sự kiện.
+  version: 2.0.0
+
+servers:
+  - url: http://localhost:4010
+    description: Prism Mock Server mặc định phục vụ chạy thử nghiệm Newman Contract Tests
+
+paths:
+  /api/v2/vision/detections:
+    get:
+      operationId: listDetectionsV2
+      summary: Lấy danh sách lịch sử nhận diện AI (Hỗ trợ Cursor Pagination)
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: starting_after
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: '^DET-[a-fA-F0-9]{8}$'
+            example: 'DET-a1b2c3d4'
+      responses:
+        '200':
+          description: Trả về danh sách nhận diện kèm thông tin phân trang con trỏ
+          headers:
+            X-Idempotency-Key:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, hasMore, nextCursor]
+                additionalProperties: false
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DetectionLog'
+                  hasMore:
+                    type: boolean
+                  nextCursor:
+                    type: [string, "null"]
+                    example: 'DET-e7d7d4f1'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/vision/detect:
+    post:
+      operationId: runDetectionV1
+      summary: [DEPRECATED] Nhận diện hình ảnh thời gian thực phiên bản v1.0
+      deprecated: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [cameraId, imageRaw]
+              properties:
+                cameraId:
+                  type: string
+                imageRaw:
+                  type: string
+      responses:
+        '200':
+          description: Xử lý thành công nhưng có kèm thông tin vòng đời API
+          headers:
+            Sunset:
+              schema:
+                type: string
+                example: "Wed, 11 Nov 2026 23:59:59 GMT"
+            Link:
+              schema:
+                type: string
+                example: '<http://localhost:4010/api/v2/vision/detections>; rel="successor-version"'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "DEPRECATED_WARNING"
+
+webhooks:
+  onAnomalousDetection:
+    post:
+      summary: Webhook cảnh báo đối tượng bất thường hoặc xâm nhập trái phép
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [eventId, alertType, confidence, timestamp]
+              additionalProperties: false
+              properties:
+                eventId:
+                  type: string
+                  format: uuid
+                  example: "c3b9a2d1-4e8f-4b9a-bc2d-1a8f3b7d6e5c"
+                alertType:
+                  type: string
+                  enum: [INTRUDER_ALERT, BLACKLIST_MATCH, UNKNOWN_PERSON]
+                  example: "BLACKLIST_MATCH"
+                confidence:
+                  type: number
+                  example: 0.96
+                timestamp:
+                  type: string
+                  format: date-time
+                  example: "2026-06-11T11:30:00Z"
+      responses:
+        '200':
+          description: Thành công
+
+components:
+  schemas:
+    DetectionLog:
+      type: object
+      required: [detectionId, cameraId, targetType, timestamp]
+      additionalProperties: false
+      properties:
+        detectionId:
+          type: string
+          pattern: '^DET-[a-fA-F0-9]{8}$'
+          example: 'DET-a1b2c3d4'
+        cameraId:
+          type: string
+          example: 'CAM-GATE-01'
+        targetType:
+          type: string
+          enum: [FACE, LICENSE_PLATE, UNKNOWN]
+          example: 'FACE'
+        metaData:
+          type: [string, "null"]
+          example: 'MSSV: 1771020457'
+        timestamp:
+          type: string
+          format: date-time
+
+    Problem:
+      type: object
+      required: [type, title, status, detail, instance]
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          format: uri
+          example: 'https://api.smartcampus.edu.vn/probs/invalid-cursor'
+        title:
+          type: string
+          example: 'Bad Request'
+        status:
+          type: integer
+          example: 400
+        detail:
+          type: string
+          example: 'The provided pagination cursor is invalid or has expired.'
+        instance:
+          type: string
+          example: '/api/v2/vision/detections'
+
+  responses:
+    BadRequest:
+      description: Lỗi dữ liệu khách hàng gửi lên
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Unauthorized:
+      description: Lỗi xác thực hệ thống
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    InternalServerError:
+      description: Lỗi hệ thống máy chủ
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
