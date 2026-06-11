@@ -1,177 +1,239 @@
 openapi: 3.1.0
 info:
-  title: Smart Campus — AI Vision API
-  version: 0.3.0
+  title: Smart Campus — AI Vision & Camera Detection Service
   description: |
-    Contract mock tối thiểu cho consumer-side smoke test trong FIT4110 Lab 03.
-    Đã được đồng bộ cấu trúc hợp đồng theo chuẩn kết nối thực tế từ nhóm A2 (Camera Stream).
+    Hợp đồng API chuẩn hóa Lab 03 phục vụ hệ thống nhận diện AI Vision.
+    Hỗ trợ đầy đủ các endpoint v1/v2, cấu trúc phân trang dựa trên con trỏ (Cursor),
+    chính sách vòng đời (Sunset) và cấu trúc lỗi Problem Details RFC 7807.
+  version: 2.0.0
+
 servers:
-  - url: http://localhost:4011
-    description: Prism mock server for AI Vision
-tags:
-  - name: vision
-    description: Image detection
-  - name: system
-    description: Health and runtime information
-security:
-  - bearerAuth: []
+  - url: http://localhost:4010
+    description: Prism Mock Server mặc định phục vụ chạy thử nghiệm Newman Contract Tests
+
 paths:
-  /health:
+  /api/v1/vision/detections:
     get:
-      tags: [system]
-      operationId: getVisionHealth
-      summary: Kiểm tra trạng thái AI Vision mock
-      description: Public health check dùng để kiểm tra mock AI Vision đã sẵn sàng.
-      security: []
+      operationId: listDetectionsV1
+      summary: Lấy danh sách lịch sử nhận diện AI phiên bản v1.0
+      tags:
+        - AI Detection v1
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
       responses:
-        "200":
-          description: Service đang hoạt động
+        '200':
+          description: Thành công
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/HealthResponse"
-              examples:
-                ok:
-                  value:
-                    status: ok
-                    service: ai-vision
-                    version: 0.3.0
+                type: object
+                required: [data, hasMore, nextCursor]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DetectionLog'
+                  hasMore:
+                    type: boolean
+                    example: false
+                  nextCursor:
+                    type: [string, "null"]
+                    example: null
 
-  /detect:
+  /api/v2/vision/detections:
+    get:
+      operationId: listDetectionsV2
+      summary: Lấy danh sách lịch sử nhận diện AI phiên bản v2.0 (Nâng cao)
+      tags:
+        - AI Detection v2
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: starting_after
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Trả về danh sách nâng cao kèm con trỏ phân trang
+          headers:
+            X-Idempotency-Key:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, hasMore, nextCursor]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DetectionLog'
+                  hasMore:
+                    type: boolean
+                    example: false
+                  nextCursor:
+                    type: [string, "null"]
+                    example: null
+
+  /api/v1/vision/detect:
     post:
-      tags: [vision]
-      operationId: detectImage
-      summary: Phát hiện đối tượng trong ảnh
-      description: Endpoint nhận dữ liệu camera từ nhóm A2 gửi sang để phân tích hình ảnh.
+      operationId: runDetectionV1
+      summary: Nhận diện hình ảnh thời gian thực phiên bản v1.0
+      deprecated: true
+      tags:
+        - AI Detection v1
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/DetectionRequest"
-            examples:
-              valid_url:
-                value:
-                  camera_id: CAM01
-                  image_url: https://example.com/frame.jpg
+              type: object
+              required: [cameraId, imageRaw]
+              properties:
+                cameraId:
+                  type: string
+                  example: "CAM-GATE-01"
+                imageRaw:
+                  type: string
+                  example: "base64_encoded_string_here"
       responses:
-        "200":
-          description: Kết quả nhận diện chuẩn bàn giao cho nhóm A5 và A6
+        '200':
+          description: Xử lý thành công dữ liệu nhận diện
+          headers:
+            Sunset:
+              schema:
+                type: string
+                example: "Wed, 11 Nov 2026 23:59:59 GMT"
+            Link:
+              schema:
+                type: string
+                example: '<http://localhost:4010/api/v2/vision/detections>; rel="successor-version"'
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DetectionResponse"
-              examples:
-                detected:
-                  value:
-                    detection_id: DET001
-                    camera_id: CAM01
-                    label: person
-                    confidence: 0.91
-                    risk_level: medium
-        "400":
-          description: Request không hợp lệ
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                invalid_image:
-                  value:
-                    type: https://smart-campus.local/problems/invalid-image
-                    title: Invalid image
-                    status: 400
-                    detail: camera_id and image_url are required fields
-                    instance: /detect
-        "401":
-          description: Thiếu hoặc sai token
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                unauthorized:
-                  value:
-                    type: https://smart-campus.local/problems/unauthorized
-                    title: Unauthorized
-                    status: 401
-                    detail: Missing or invalid bearer token
-                    instance: /detect
+                type: object
+                required: [status, detectionId, targetType, timestamp]
+                properties:
+                  status:
+                    type: string
+                    example: "SUCCESS"
+                  detectionId:
+                    type: string
+                    example: "DET-a1b2c3d4"
+                  targetType:
+                    type: string
+                    example: "FACE"
+                  timestamp:
+                    type: string
+                    example: "2026-06-11T11:30:00Z"
+
+webhooks:
+  onAnomalousDetection:
+    post:
+      summary: Webhook cảnh báo đối tượng bất thường hoặc xâm nhập trái phép
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [eventId, alertType, confidence, timestamp]
+              properties:
+                eventId:
+                  type: string
+                  format: uuid
+                  example: "c3b9a2d1-4e8f-4b9a-bc2d-1a8f3b7d6e5c"
+                alertType:
+                  type: string
+                  example: "BLACKLIST_MATCH"
+                confidence:
+                  type: number
+                  example: 0.96
+                timestamp:
+                  type: string
+                  format: date-time
+                  example: "2026-06-11T11:30:00Z"
+      responses:
+        '200':
+          description: Đã nhận dữ liệu thành công
 
 components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-
   schemas:
-    DetectionRequest:
+    DetectionLog:
       type: object
-      required: [camera_id, image_url]
+      required: [detectionId, cameraId, targetType, timestamp]
       properties:
-        camera_id:
+        detectionId:
           type: string
-          minLength: 3
-          example: CAM01
-        image_url:
+          example: 'DET-a1b2c3d4'
+        cameraId:
           type: string
-          format: uri
-          example: https://example.com/frame.jpg
+          example: 'CAM-GATE-01'
+        targetType:
+          type: string
+          example: 'FACE'
+        metaData:
+          type: [string, "null"]
+          example: 'MSSV: 1771020457'
+        timestamp:
+          type: string
+          format: date-time
+          example: "2026-06-11T11:30:00Z"
 
-    DetectionResponse:
+    Problem:
       type: object
-      required: [detection_id, label, confidence, risk_level]
-      properties:
-        detection_id:
-          type: string
-          example: DET001
-        camera_id:
-          type: string
-          example: CAM01
-        label:
-          type: string
-          enum: [person, vehicle, unknown]
-          example: person
-        confidence:
-          type: number
-          minimum: 0
-          maximum: 1
-          example: 0.91
-        risk_level:
-          type: string
-          enum: [low, medium, high]
-          example: medium
-
-    HealthResponse:
-      type: object
-      required: [status, service, version]
-      properties:
-        status:
-          type: string
-          enum: [ok]
-          example: ok
-        service:
-          type: string
-          example: ai-vision
-        version:
-          type: string
-          example: 0.3.0
-
-    ProblemDetails:
-      type: object
-      required: [type, title, status, detail]
+      required: [type, title, status, detail, instance]
       properties:
         type:
           type: string
           format: uri
+          example: 'https://api.smartcampus.edu.vn/probs/invalid-request'
         title:
           type: string
+          example: 'Bad Request'
         status:
           type: integer
-          minimum: 400
-          maximum: 599
+          example: 400
         detail:
           type: string
+          example: 'The requested resource metadata is completely missing.'
         instance:
           type: string
+          example: '/api/v1/vision/detections'
+
+  responses:
+    BadRequest:
+      description: Lỗi dữ liệu khách hàng gửi lên
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/components/schemas/Problem'
+    Unauthorized:
+      description: Lỗi xác thực hệ thống
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/components/schemas/Problem'
+    InternalServerError:
+      description: Lỗi hệ thống máy chủ
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/components/schemas/Problem'
