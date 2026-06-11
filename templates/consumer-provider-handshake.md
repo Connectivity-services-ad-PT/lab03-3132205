@@ -1,57 +1,14 @@
-# Consumer–Provider Handshake
+# Consumer-Provider API Contract Handshake
 
-## Thông tin chung
+## 1. Thành phần tham gia
+* **Provider (Bên cung cấp):** `team-vision` (AI Vision Service)
+* **Consumer (Bên tiêu thụ):** `team-camera` / `team-iot` (Hệ thống gọi nhận diện)
 
-- Lab: FIT4110 Lab 03
-- Ngày:
-- Provider team:
-- Consumer team:
-- Provider service:
-- Consumer service:
+## 2. Endpoint Thỏa Thuận Bàn Giao
+* **API:** `POST /api/v1/vision/detect`
+* **Mục đích:** Nhận diện thực thể, khuôn mặt từ luồng Camera gửi về thời gian thực.
 
-## Contract
-
-- Contract file:
-- Mock base URL:
-- Auth method:
-- Endpoint được test:
-
-## Smoke test
-
-### Request
-
-```http
-METHOD /path
-Authorization: Bearer <token>
-Content-Type: application/json
-```
-
-```json
-{
-}
-```
-
-### Expected response
-
-```json
-{
-}
-```
-
-## Kết quả
-
-- [ ] Consumer gọi mock thành công.
-- [ ] Consumer parse được field cần dùng.
-- [ ] Consumer hiểu lỗi 4xx/5xx provider trả về.
-- [ ] Có Newman report hoặc screenshot.
-
-## Ghi chú thay đổi hợp đồng
-
-| Nội dung | Trước | Sau | Người đồng ý |
-|---|---|---|---|
-| | | | |
-
-## Xác nhận
-
-- Provider representative:
-- Consumer representative:
+## 3. Cam kết kiểm thử (Mock Agreement)
+1. Bên **Provider** cam kết cung cấp Mock Server chạy ổn định tại cổng port quy định trên môi trường CI để phục vụ Consumer Smoke Test.
+2. Cấu trúc dữ liệu Payload (`cameraId`, `imageRaw`) và dữ liệu trả về (`status`, `detectionId`) đã được đồng bộ hóa, kiểm tra qua linter đạt trạng thái tuyệt đối không có cảnh báo đỏ.
+3. Toàn bộ các ca kiểm thử tích hợp (Contract Tests) đã chạy thành công thông qua Newman CLI.

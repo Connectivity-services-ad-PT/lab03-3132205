@@ -1,6 +1,7 @@
-ID,Folder,Endpoint,Method,Scenario,Input file/body,Expected status,Expected response check,Type,Pass/Fail,Evidence
-TC01,Functional,/health,GET,Service is alive,-,200,status=ok,functional,,
-TC02,Functional,/readings,POST,Create reading happy path,mock-data/sensor-reading-valid.json,201,"has reading_id, accepted=true",functional,,
-TC03,Negative,/readings,POST,Missing device_id,mock-data/sensor-reading-invalid-missing-device.json,400,Problem Details,negative,,
-TC04,Auth,/readings,POST,Missing token,mock-data/sensor-reading-valid.json,401,Problem Details,auth,,
-TC05,Boundary,/readings,POST,High temperature boundary,mock-data/sensor-reading-boundary.json,201/400,documented behavior,boundary,,
+Test Case ID,Folder,Endpoint,HTTP Method,Input/Payload Scenario,Expected Status,Test Type
+TC-001,01_Functional,/api/v1/vision/detections,GET,limit=10,200,Happy Path
+TC-002,02_Auth,/api/v1/vision/detections,GET,Missing Authorization Header,401,Security / Auth Test
+TC-003,03_Negative,/api/v1/vision/detections,GET,limit=invalid_string,400,Negative / Validation
+TC-004,04_Boundary_Reliability,/api/v1/vision/detections,GET,limit=100,200,Boundary Test
+TC-005,05_Consumer_side_Smoke,/api/v1/vision/detect,POST,Valid base64 image raw data,200,Consumer Smoke Test
+TC-006,06_Local_only_NonFunctional,/api/v1/vision/detections,GET,Normal execution on local env,<1000ms,Performance / SLA

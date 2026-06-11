@@ -2,9 +2,7 @@ openapi: 3.1.0
 info:
   title: Smart Campus — IoT Ingestion API
   version: 0.3.0
-  description: |
-    Contract mẫu dùng cho FIT4110 Lab 03 — Postman, Mock Server và Contract Testing.
-    Đã được chuẩn hóa cấu trúc lỗi và URL để vượt qua bộ kiểm tra tự động Spectral.
+  description: Contract mẫu đã chuẩn hóa cấu trúc lỗi và URL quy định.
 servers:
   - url: http://localhost:4010
     description: Prism mock server
@@ -23,7 +21,6 @@ paths:
       tags: [system]
       operationId: getHealth
       summary: Kiểm tra trạng thái service
-      description: Public health check dùng để kiểm tra mock/service đã sẵn sàng.
       security: []
       responses:
         "200":
@@ -44,8 +41,6 @@ paths:
       tags: [readings]
       operationId: createReading
       summary: Gửi một bản ghi cảm biến từ thiết bị IoT
-      description: |
-        Endpoint nhận telemetry từ ESP32 hoặc gateway.
       requestBody:
         required: true
         content:
@@ -60,13 +55,6 @@ paths:
                   value: 31.5
                   unit: celsius
                   timestamp: "2026-05-13T08:30:00+07:00"
-              boundary_high_temperature:
-                value:
-                  device_id: ESP32-LAB-A01
-                  metric: temperature
-                  value: 80
-                  unit: celsius
-                  timestamp: "2026-05-13T08:30:00+07:00"
       responses:
         "201":
           description: Đã ghi nhận bản đọc cảm biến
@@ -74,70 +62,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SensorReadingCreated"
-              examples:
-                created:
-                  value:
-                    reading_id: R-20260513-0001
-                    device_id: ESP32-LAB-A01
-                    metric: temperature
-                    accepted: true
-                    created_at: "2026-05-13T08:30:01+07:00"
         "400":
           description: Request không hợp lệ
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                missing_device:
-                  value:
-                    type: https://github.com/Connectivity-services-ad-PT/lab03-3132205/wiki
-                    title: Validation error
-                    status: 400
-                    detail: device_id is required
-                    instance: /readings
         "401":
           description: Thiếu hoặc sai token
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                unauthorized:
-                  value:
-                    type: https://github.com/Connectivity-services-ad-PT/lab03-3132205/wiki
-                    title: Unauthorized
-                    status: 401
-                    detail: Missing or invalid bearer token
-                    instance: /readings
         "429":
-          description: Thiết bị gửi dữ liệu quá nhiều trong thời gian ngắn
+          description: Thiết bị gửi dữ liệu quá nhiều
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                rate_limited:
-                  value:
-                    type: https://github.com/Connectivity-services-ad-PT/lab03-3132205/wiki
-                    title: Too Many Requests
-                    status: 429
-                    detail: Device exceeded allowed telemetry rate
-                    instance: /readings
 
   /readings/latest:
     get:
       tags: [readings]
       operationId: getLatestReadings
       summary: Lấy các bản ghi cảm biến mới nhất
-      description: Trả về danh sách bản ghi mới nhất, có thể lọc theo thiết bị và giới hạn số dòng.
       parameters:
         - in: query
           name: device_id
           required: false
           schema:
             type: string
-          example: ESP32-LAB-A01
         - in: query
           name: limit
           required: false
@@ -146,7 +100,6 @@ paths:
             minimum: 1
             maximum: 100
             default: 10
-          example: 5
       responses:
         "200":
           description: Danh sách bản ghi mới nhất
@@ -160,44 +113,18 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/SensorReading"
-              examples:
-                latest:
-                  value:
-                    items:
-                      - reading_id: R-20260513-0001
-                        device_id: ESP32-LAB-A01
-                        metric: temperature
-                        value: 31.5
-                        unit: celsius
-                        timestamp: "2026-05-13T08:30:00+07:00"
         "400":
           description: Query parameter không hợp lệ
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                invalid_limit:
-                  value:
-                    type: https://github.com/Connectivity-services-ad-PT/lab03-3132205/wiki
-                    title: Validation error
-                    status: 400
-                    detail: limit must be between 1 and 100
-                    instance: /readings/latest
         "401":
           description: Thiếu hoặc sai token
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                unauthorized:
-                  value:
-                    type: https://github.com/Connectivity-services-ad-PT/lab03-3132205/wiki
-                    title: Unauthorized
-                    status: 401
-                    detail: Missing or invalid bearer token
-                    instance: /readings/latest
 
 components:
   securitySchemes:

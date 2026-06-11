@@ -3,8 +3,7 @@ info:
   title: Smart Campus — AI Vision & Camera Detection Service
   description: |
     Hợp đồng API chuẩn hóa Lab 03 phục vụ hệ thống nhận diện AI Vision.
-    Hỗ trợ đầy đủ các endpoint v1/v2, cấu trúc phân trang dựa trên con trỏ (Cursor),
-    chính sách vòng đời (Sunset) và cấu trúc lỗi Problem Details RFC 7807.
+    Hỗ trợ đầy đủ cấu trúc lỗi Problem Details RFC 7807 và phân trang Cursor.
   version: 2.0.0
 
 servers:
@@ -24,6 +23,8 @@ paths:
           required: false
           schema:
             type: integer
+            minimum: 1
+            maximum: 100
             default: 10
         - name: cursor
           in: query
@@ -47,13 +48,18 @@ paths:
                     type: boolean
                     example: false
                   nextCursor:
-                    type: [string, "null"]
+                    type: string
+                    nullable: true
                     example: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /api/v2/vision/detections:
     get:
       operationId: listDetectionsV2
-      summary: Lấy danh sách lịch sử nhận diện AI phiên bản v2.0 (Nâng cao)
+      summary: Lấy danh sách lịch sử nhận diện AI phiên bản v2.0
       tags:
         - AI Detection v2
       parameters:
@@ -62,6 +68,8 @@ paths:
           required: false
           schema:
             type: integer
+            minimum: 1
+            maximum: 100
             default: 10
         - name: starting_after
           in: query
@@ -89,8 +97,13 @@ paths:
                     type: boolean
                     example: false
                   nextCursor:
-                    type: [string, "null"]
+                    type: string
+                    nullable: true
                     example: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /api/v1/vision/detect:
     post:
@@ -143,6 +156,12 @@ paths:
                   timestamp:
                     type: string
                     example: "2026-06-11T11:30:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
 
 webhooks:
   onAnomalousDetection:
@@ -190,7 +209,8 @@ components:
           type: string
           example: 'FACE'
         metaData:
-          type: [string, "null"]
+          type: string
+          nullable: true
           example: 'MSSV: 1771020457'
         timestamp:
           type: string
@@ -204,13 +224,14 @@ components:
         type:
           type: string
           format: uri
-          description: Đường dẫn chính xác trỏ về wiki bài tập của repository
           example: 'https://github.com/Connectivity-services-ad-PT/lab03-3132205/wiki'
         title:
           type: string
           example: 'Bad Request'
         status:
           type: integer
+          minimum: 400
+          maximum: 599
           example: 400
         detail:
           type: string
@@ -232,8 +253,8 @@ components:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/Problem'
-    InternalServerError:
-      description: Lỗi hệ thống máy chủ
+    TooManyRequests:
+      description: Gửi quá nhiều yêu cầu trong thời gian ngắn
       content:
         application/problem+json:
           schema:
