@@ -204,7 +204,8 @@ components:
         type:
           type: string
           format: uri
-          example: 'https://api.smartcampus.edu.vn/probs/invalid-request'
+          description: Đường dẫn chính xác trỏ về wiki bài tập của repository
+          example: 'https://github.com/Connectivity-services-ad-PT/lab03-3132205/wiki'
         title:
           type: string
           example: 'Bad Request'
@@ -224,16 +225,16 @@ components:
       content:
         application/problem+json:
           schema:
-            $ref: '#/components/components/schemas/Problem'
+            $ref: '#/components/schemas/Problem'
     Unauthorized:
       description: Lỗi xác thực hệ thống
       content:
         application/problem+json:
           schema:
-            $ref: '#/components/components/schemas/Problem'
+            $ref: '#/components/schemas/Problem'
     InternalServerError:
       description: Lỗi hệ thống máy chủ
       content:
         application/problem+json:
           schema:
-            $ref: '#/components/components/schemas/Problem'
+            $ref: '#/components/schemas/Problem'

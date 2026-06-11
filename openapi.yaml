@@ -145,3 +145,96 @@ paths:
                     example: "2026-06-11T11:30:00Z"
 
 webhooks:
+  onAnomalousDetection:
+    post:
+      summary: Webhook cảnh báo đối tượng bất thường hoặc xâm nhập trái phép
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [eventId, alertType, confidence, timestamp]
+              properties:
+                eventId:
+                  type: string
+                  format: uuid
+                  example: "c3b9a2d1-4e8f-4b9a-bc2d-1a8f3b7d6e5c"
+                alertType:
+                  type: string
+                  example: "BLACKLIST_MATCH"
+                confidence:
+                  type: number
+                  example: 0.96
+                timestamp:
+                  type: string
+                  format: date-time
+                  example: "2026-06-11T11:30:00Z"
+      responses:
+        '200':
+          description: Đã nhận dữ liệu thành công
+
+components:
+  schemas:
+    DetectionLog:
+      type: object
+      required: [detectionId, cameraId, targetType, timestamp]
+      properties:
+        detectionId:
+          type: string
+          example: 'DET-a1b2c3d4'
+        cameraId:
+          type: string
+          example: 'CAM-GATE-01'
+        targetType:
+          type: string
+          example: 'FACE'
+        metaData:
+          type: [string, "null"]
+          example: 'MSSV: 1771020457'
+        timestamp:
+          type: string
+          format: date-time
+          example: "2026-06-11T11:30:00Z"
+
+    Problem:
+      type: object
+      required: [type, title, status, detail, instance]
+      properties:
+        type:
+          type: string
+          format: uri
+          description: Đường dẫn chính xác trỏ về wiki bài tập của repository
+          example: 'https://github.com/Connectivity-services-ad-PT/lab03-3132205/wiki'
+        title:
+          type: string
+          example: 'Bad Request'
+        status:
+          type: integer
+          example: 400
+        detail:
+          type: string
+          example: 'The requested resource metadata is completely missing.'
+        instance:
+          type: string
+          example: '/api/v1/vision/detections'
+
+  responses:
+    BadRequest:
+      description: Lỗi dữ liệu khách hàng gửi lên
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Unauthorized:
+      description: Lỗi xác thực hệ thống
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    InternalServerError:
+      description: Lỗi hệ thống máy chủ
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
