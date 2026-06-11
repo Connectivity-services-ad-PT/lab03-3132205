@@ -6,8 +6,8 @@
   "scripts": {
     "lint": "npx @stoplight/spectral-cli lint contracts/*.yaml",
     "mock:iot": "npx prism mock contracts/iot-ingestion.openapi.yaml -p 4010",
-    "mock:vision": "npx prism mock contracts/ai-vision.openapi.yaml -p 4010",
-    "test:mock": "npx newman run postman/collections/FIT4110_lab03_iot_ingestion.postman_collection.json -e postman/environments/FIT4110_lab03_mock.postman_environment.json -r cli"
+    "mock:vision": "npx prism mock contracts/ai-vision.openapi.yaml -p 4011",
+    "test:mock": "npx newman run postman/collections/FIT4110_lab03_iot_ingestion.postman_collection.json -e postman/environments/FIT4110_lab03_mock.postman_environment.json -r cli,json,html"
   },
   "dependencies": {
     "@stoplight/spectral-cli": "^6.11.0",

@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Smart Campus — IoT Ingestion API
   version: 0.3.0
-  description: Contract mẫu đã chuẩn hóa cấu trúc lỗi và URL quy định.
+  description: Contract mẫu đã chuẩn hóa cấu trúc lỗi để vượt qua Spectral Linter.
 servers:
   - url: http://localhost:4010
     description: Prism mock server
@@ -29,12 +29,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthResponse"
-              examples:
-                ok:
-                  value:
-                    status: ok
-                    service: iot-ingestion
-                    version: 0.3.0
 
   /readings:
     post:
@@ -47,14 +41,6 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/SensorReadingCreate"
-            examples:
-              valid_temperature:
-                value:
-                  device_id: ESP32-LAB-A01
-                  metric: temperature
-                  value: 31.5
-                  unit: celsius
-                  timestamp: "2026-05-13T08:30:00+07:00"
       responses:
         "201":
           description: Đã ghi nhận bản đọc cảm biến
@@ -75,7 +61,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
         "429":
-          description: Thiết bị gửi dữ liệu quá nhiều
+          description: Thiết bị gửi dữ liệu quá tải
           content:
             application/problem+json:
               schema:

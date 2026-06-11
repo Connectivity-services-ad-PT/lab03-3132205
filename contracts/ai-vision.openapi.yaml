@@ -1,9 +1,7 @@
 openapi: 3.1.0
 info:
   title: Smart Campus — AI Vision & Camera Detection Service
-  description: |
-    Hợp đồng API chuẩn hóa Lab 03 phục vụ hệ thống nhận diện AI Vision.
-    Hỗ trợ đầy đủ cấu trúc lỗi Problem Details RFC 7807 và phân trang Cursor.
+  description: Hợp đồng API chuẩn hóa Lab 03 phục vụ hệ thống nhận diện AI Vision.
   version: 2.0.0
 
 servers:

@@ -1,6 +1,5 @@
 {
-  "metric": "temperature",
-  "value": 31.5,
+  "device_id": "ESP32-LAB-A01",
   "unit": "celsius",
-  "timestamp": "2026-05-13T08:30:00+07:00"
+  "timestamp": "2026-06-11T15:00:00+07:00"
 }

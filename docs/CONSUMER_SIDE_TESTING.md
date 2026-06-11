@@ -1,40 +1,39 @@
-# CONSUMER-SIDE TESTING — Kiểm thử từ phía nhóm gọi API
+# KIỂM THỬ BÊN CONSUMER — Consumer-side Testing
 
-## 1. Vì sao cần consumer-side test?
+## 1. Mục đích
 
-Trong hệ thống Smart Campus, không nhóm nào làm việc độc lập hoàn toàn.
+Consumer-side testing giúp nhóm gọi API:
 
-Ví dụ:
+- xác nhận mock provider hoạt động đúng với contract,
+- phát hiện sớm vấn đề trước khi provider hoàn thành code thật,
+- giảm rủi ro khi tích hợp với hệ thống khác.
 
-```text
-Camera Stream → AI Vision → Core Business → Notification
-IoT Ingestion → Core Business
-IoT Ingestion → Analytics
-Access Gate → Core Business
-```
+Trong hệ thống Smart Campus, các luồng thường phụ thuộc lẫn nhau:
 
-Nếu phải chờ provider code xong mới làm tiếp, toàn bộ lớp sẽ bị nghẽn.  
-Vì vậy, consumer cần gọi được **mock API** của provider.
+- Camera Stream → AI Vision → Core Business → Notification
+- IoT Ingestion → Core Business
+- IoT Ingestion → Analytics
+- Access Gate → Core Business
+
+Nếu consumer phải chờ provider hoàn thiện, tiến độ toàn bộ chuỗi bị đình trệ. Vì vậy, consumer cần có test gọi mock API ngay từ đầu.
 
 ---
 
-## 2. Quy trình handshake giữa consumer và provider
+## 2. Quy trình handshake
 
-### Bước 1 — Provider công bố contract
+### Bước 1 — Provider chia sẻ contract
 
-Provider đưa cho consumer:
+Provider phải cung cấp cho consumer:
 
-```text
-openapi.yaml
-mock_base_url
-auth rule
-example request
-example response
-```
+- file `openapi.yaml`
+- `mock_base_url`
+- quy tắc xác thực (`auth rule`)
+- ví dụ request
+- ví dụ response
 
-### Bước 2 — Consumer tạo smoke test
+### Bước 2 — Consumer xây dựng smoke test
 
-Consumer tạo ít nhất 1 request gọi mock provider.
+Consumer cần tạo ít nhất một smoke test gọi đến mock API của provider.
 
 Ví dụ Camera gọi AI Vision mock:
 
@@ -49,7 +48,7 @@ Content-Type: application/json
 }
 ```
 
-Expected:
+Kết quả kỳ vọng phải trả về response hợp lệ và có thể dùng được:
 
 ```json
 {
@@ -60,22 +59,28 @@ Expected:
 }
 ```
 
-### Bước 3 — Ghi biên bản
+### Bước 3 — Ghi biên bản handshake
 
-Dùng template:
+Ghi lại các thông tin đã thỏa thuận bằng template:
 
-```text
-templates/consumer-provider-handshake.md
-```
+- `templates/consumer-provider-handshake.md`
+
+Nội dung biên bản nên bao gồm:
+
+- đường dẫn mock API
+- định nghĩa endpoint
+- yêu cầu xác thực
+- ví dụ request/response
+- các tiêu chí test
 
 ---
 
-## 3. Tiêu chí pass
+## 3. Tiêu chí đánh giá
 
-Consumer-side smoke test đạt khi:
+Consumer-side smoke test được coi là pass khi:
 
-- Gọi đúng endpoint của provider.
-- Request body đúng schema.
-- Đọc được field cần dùng trong response.
-- Xử lý được ít nhất 1 lỗi 4xx hoặc 5xx.
-- Có ảnh chụp màn hình hoặc Newman report.
+- Gọi đúng endpoint và base URL của provider.
+- Request body đúng schema theo contract.
+- Response trả về chứa các field consumer cần dùng.
+- Consumer có thể xử lý ít nhất một trường hợp lỗi 4xx hoặc 5xx.
+- Kèm bằng chứng thực thi: ảnh chụp màn hình, log test hoặc Newman report.
